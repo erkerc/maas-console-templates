@@ -1,0 +1,91 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: maas-publish-model
+  annotations:
+    openshift.io/display-name: "MaaS 1 - Publish a model"
+    openshift.io/provider-display-name: Red Hat
+    iconClass: icon-openshift
+    tags: maas,models-as-a-service,publish,model
+    description: >-
+      Publishes one deployed model through the Models-as-a-Service (MaaS)
+      gateway by creating its MaaSModelRef. Run once per model, before
+      "MaaS 2 - Model subscription and pricing".
+    openshift.io/long-description: |-
+      Creates one object:
+
+        MaaSModelRef "<Model name>" in the model namespace.
+
+      The MaaS controller then builds the gateway route for the model and
+      reports its endpoint. Nobody can call the model yet: access and token
+      quota come from "MaaS 2 - Model subscription and pricing".
+
+      BEFORE YOU START
+      - The model must be deployed (an LLMInferenceService), or registered as
+        an ExternalModel.
+      - Skip this template if the model was already published as a MaaS
+        endpoint from the OpenShift AI dashboard. The MaaSModelRef exists, and
+        instantiating fails with "already exists". Go straight to template 2.
+
+      REMOVING
+      Deleting this TemplateInstance deletes the MaaSModelRef, which
+      unpublishes the model for every subscription that uses it.
+message: |-
+  Published ${MODEL_NAMESPACE}/${MODEL_NAME} to MaaS.
+
+  Next: instantiate "MaaS 2 - Model subscription and pricing" with
+  Model name ${MODEL_NAME} and Model namespace ${MODEL_NAMESPACE}.
+labels:
+  template: maas-publish-model
+  app.kubernetes.io/part-of: maas-showback
+objects:
+- apiVersion: maas.opendatahub.io/v1alpha1
+  kind: MaaSModelRef
+  metadata:
+    name: ${MODEL_NAME}
+    namespace: ${MODEL_NAMESPACE}
+    annotations:
+      openshift.io/display-name: ${MODEL_DISPLAY_NAME}
+      openshift.io/description: ${MODEL_DESCRIPTION}
+  spec:
+    modelRef:
+      kind: ${MODEL_KIND}
+      name: ${MODEL_NAME}
+    tenantRef: ${TENANT_NAME}
+parameters:
+- name: MODEL_NAME
+  displayName: Model name
+  description: >-
+    Resource name of the deployed model (the LLMInferenceService name, or the
+    ExternalModel name). The MaaSModelRef gets the same name.
+  value: qwen3-8b-fp8-dynamic
+  required: true
+- name: MODEL_NAMESPACE
+  displayName: Model namespace
+  description: Project where the model is deployed.
+  value: demo-llm
+  required: true
+- name: MODEL_KIND
+  displayName: Model kind
+  description: >-
+    LLMInferenceService for a model served on this cluster. ExternalModel for a
+    hosted provider registered as an ExternalModel resource.
+  value: LLMInferenceService
+  required: true
+- name: MODEL_DISPLAY_NAME
+  displayName: Model display name
+  description: Name users see in the MaaS model list and GenAI Studio.
+  value: Qwen3 8B FP8
+  required: true
+- name: MODEL_DESCRIPTION
+  displayName: Model description
+  description: Short description users see in the MaaS model list.
+  value: General-purpose chat model, FP8 dynamic quantization
+  required: true
+- name: TENANT_NAME
+  displayName: AI tenant
+  description: >-
+    AITenant whose gateway serves the model. models-as-a-service is the default
+    tenant.
+  value: models-as-a-service
+  required: true

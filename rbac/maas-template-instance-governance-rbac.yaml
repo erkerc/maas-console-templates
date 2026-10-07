@@ -1,0 +1,45 @@
+# One-time setup for instantiating the MaaS templates from the OpenShift console.
+#
+# When you click "Create" on a template form, the objects are created by the
+# template-instance-controller service account, and removed (when you delete the
+# TemplateInstance) by the template-instance-finalizer-controller service account,
+# both in openshift-infra. Their built-in "admin" role already covers
+# MaaSModelRefs and monitoring.rhobs PrometheusRules, but not MaaSSubscriptions or
+# MaaSAuthPolicies. Without this binding:
+#   - instantiating fails with
+#       maassubscriptions.maas.opendatahub.io is forbidden: User
+#       "system:serviceaccount:openshift-infra:template-instance-controller" cannot create ...
+#   - deleting a TemplateInstance hangs, leaving the subscription and the auth
+#     policy in place (and their API keys still working).
+#
+# The role is bound only to those two controllers, so it gives no new rights to
+# users. Apply once per cluster, as a cluster administrator (Import YAML or
+# oc apply -f).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: maas-template-instance-governance
+  labels:
+    app.kubernetes.io/part-of: maas-showback
+rules:
+- apiGroups: ["maas.opendatahub.io"]
+  resources: ["maassubscriptions", "maasauthpolicies"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete", "deletecollection"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: maas-template-instance-governance
+  labels:
+    app.kubernetes.io/part-of: maas-showback
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: maas-template-instance-governance
+subjects:
+- kind: ServiceAccount
+  name: template-instance-controller
+  namespace: openshift-infra
+- kind: ServiceAccount
+  name: template-instance-finalizer-controller
+  namespace: openshift-infra

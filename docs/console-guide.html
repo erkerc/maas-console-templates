@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MaaS Console Templates</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+:root{
+  --paper:#f5f7f8; --surface:#ffffff; --surface-2:#e9eef0;
+  --ink:#141a1f; --ink-2:#47535d; --ink-3:#75828c;
+  --rule:#d8e0e4; --rule-2:#c3ced4;
+  --accent:#0c6a70; --accent-2:#0a4f54; --accent-soft:#dff0f0;
+  --warn:#9c5310; --warn-soft:#f9ecdc;
+  --danger:#a02629; --danger-soft:#fae4e3;
+  --ok:#2a6a3b; --ok-soft:#e2f0e5;
+  --code-bg:#eef2f4; --code-ink:#1b242b;
+  --shadow:0 1px 2px rgba(20,26,31,.05), 0 8px 24px -16px rgba(20,26,31,.28);
+  --f-display:"IBM Plex Sans Condensed", "Helvetica Neue", Arial, sans-serif;
+  --f-body:"IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#101619; --surface:#161e22; --surface-2:#1e282d;
+    --ink:#e4eaec; --ink-2:#a7b4bb; --ink-3:#7c8b93;
+    --rule:#28343a; --rule-2:#3a4952;
+    --accent:#57c4c9; --accent-2:#8ad9dc; --accent-soft:#122f31;
+    --warn:#d9a05f; --warn-soft:#2e2317;
+    --danger:#e0797a; --danger-soft:#301b1c;
+    --ok:#77bd8a; --ok-soft:#172a1c;
+    --code-bg:#0c1316; --code-ink:#d6e0e4;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -18px rgba(0,0,0,.9);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#101619; --surface:#161e22; --surface-2:#1e282d;
+  --ink:#e4eaec; --ink-2:#a7b4bb; --ink-3:#7c8b93;
+  --rule:#28343a; --rule-2:#3a4952;
+  --accent:#57c4c9; --accent-2:#8ad9dc; --accent-soft:#122f31;
+  --warn:#d9a05f; --warn-soft:#2e2317;
+  --danger:#e0797a; --danger-soft:#301b1c;
+  --ok:#77bd8a; --ok-soft:#172a1c;
+  --code-bg:#0c1316; --code-ink:#d6e0e4;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -18px rgba(0,0,0,.9);
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.6 var(--f-body)}
+.wrap{max-width:880px;margin:0 auto;padding:40px 16px 80px}
+header{border-bottom:1px solid var(--rule);padding-bottom:24px;margin-bottom:8px}
+.eyebrow{font:600 12px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+h1{font:700 clamp(30px,5vw,42px)/1.1 var(--f-display);margin:12px 0 12px;letter-spacing:-.01em}
+.lede{font-size:18px;color:var(--ink-2);margin:0;max-width:62ch}
+nav.toc{display:flex;flex-wrap:wrap;gap:6px 18px;margin:20px 0 0;font-size:14px}
+nav.toc a{color:var(--ink-2);text-decoration:none;border-bottom:1px solid var(--rule-2)}
+nav.toc a:hover{color:var(--accent);border-color:var(--accent)}
+section{padding-top:36px}
+h2{font:700 26px/1.2 var(--f-display);margin:0 0 4px;display:flex;gap:12px;align-items:baseline}
+h2 .n{font:600 14px var(--f-mono);color:var(--accent)}
+h3{font:600 19px/1.3 var(--f-display);margin:28px 0 6px}
+p,li{max-width:70ch}
+a{color:var(--accent)}
+code{font:500 .88em var(--f-mono);background:var(--code-bg);color:var(--code-ink);padding:1px 5px;border-radius:4px;overflow-wrap:anywhere}
+pre{font:13px/1.55 var(--f-mono);background:var(--code-bg);color:var(--code-ink);padding:14px 16px;border-radius:8px;overflow-x:auto;border:1px solid var(--rule)}
+pre code{background:none;padding:0;font-size:inherit}
+.ui{font-weight:600;color:var(--ink)}
+.kbd{font:600 .85em var(--f-mono);border:1px solid var(--rule-2);border-bottom-width:2px;border-radius:4px;padding:0 5px;background:var(--surface)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin:18px 0}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:16px 18px;box-shadow:var(--shadow)}
+.card h4{margin:0 0 4px;font:700 17px/1.25 var(--f-display)}
+.card .tag{font:600 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.card ul{margin:8px 0 0;padding-left:18px;font-size:14.5px}
+.card p{font-size:14.5px;margin:6px 0 0;color:var(--ink-2)}
+.note,.warn,.danger,.ok{border-radius:8px;padding:12px 16px;margin:16px 0;border-left:4px solid}
+.note{background:var(--accent-soft);border-color:var(--accent)}
+.warn{background:var(--warn-soft);border-color:var(--warn)}
+.danger{background:var(--danger-soft);border-color:var(--danger)}
+.ok{background:var(--ok-soft);border-color:var(--ok)}
+.note p,.warn p,.danger p,.ok p{margin:4px 0}
+.label{font:700 12px var(--f-mono);letter-spacing:.06em;text-transform:uppercase}
+ol.steps{counter-reset:s;list-style:none;padding:0;margin:14px 0}
+ol.steps>li{counter-increment:s;position:relative;padding:2px 0 14px 44px;max-width:none}
+ol.steps>li::before{content:counter(s);position:absolute;left:0;top:0;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font:700 14px/28px var(--f-mono);text-align:center}
+.tbl{overflow-x:auto;margin:14px 0;border:1px solid var(--rule);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--rule)}
+th{font:600 12.5px var(--f-mono);letter-spacing:.03em;color:var(--ink-2);background:var(--surface-2);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td code{white-space:nowrap}
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:10px;margin:20px 0}
+.flow .box{flex:1 1 170px;background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 14px}
+.flow .box b{display:block;font:700 15px var(--f-display)}
+.flow .box span{font-size:13.5px;color:var(--ink-2)}
+.flow .arr{align-self:center;color:var(--ink-3);font:600 18px var(--f-mono)}
+footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--rule);font-size:13.5px;color:var(--ink-3)}
+@media (max-width:560px){.flow .arr{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Models-as-a-Service · OpenShift console</div>
+  <h1>Publishing and pricing models from the OpenShift console</h1>
+  <p class="lede">Two templates turn a deployed model into a governed, priced MaaS endpoint by filling in a form. No YAML or command line is needed after the one-time setup.</p>
+  <nav class="toc">
+    <a href="#overview">Overview</a>
+    <a href="#setup">1. One-time setup</a>
+    <a href="#publish">2. Publish a model</a>
+    <a href="#tier">3. Add a subscription tier</a>
+    <a href="#verify">4. Verify</a>
+    <a href="#change">5. Change or remove</a>
+    <a href="#trouble">6. Troubleshooting</a>
+  </nav>
+</header>
+
+<section id="overview">
+  <h2>Overview</h2>
+  <p>A model becomes usable through MaaS in two steps. You publish it once, then add one subscription tier for each group of users who need it. Each tier sets a token quota and a price.</p>
+
+  <div class="flow">
+    <div class="box"><b>Deployed model</b><span>LLMInferenceService in a project, e.g. <code>demo-llm</code></span></div>
+    <div class="arr">→</div>
+    <div class="box"><b>MaaS 1 · Publish a model</b><span>Once per model</span></div>
+    <div class="arr">→</div>
+    <div class="box"><b>MaaS 2 · Subscription and pricing</b><span>Once per tier: Premium, Basic, …</span></div>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="tag">Template · maas-publish-model</div>
+      <h4>MaaS 1 - Publish a model</h4>
+      <ul>
+        <li><b>MaaSModelRef</b> in the model's project. Puts the model behind the MaaS gateway.</li>
+      </ul>
+      <p>Skip it if the model was already published as a MaaS endpoint from the OpenShift AI dashboard.</p>
+    </div>
+    <div class="card">
+      <div class="tag">Template · maas-model-subscription-pricing</div>
+      <h4>MaaS 2 - Model subscription and pricing</h4>
+      <ul>
+        <li><b>MaaSSubscription</b>: token limits per minute, hour and day</li>
+        <li><b>MaaSAuthPolicy</b>: lets the group call the model</li>
+        <li><b>PrometheusRule</b>: the price, for the cost dashboard</li>
+      </ul>
+    </div>
+  </div>
+
+  <p>The subscription and the auth policy always come together. Without the policy, the gateway refuses the group with <code>403</code>. Without the subscription, the group gets through but has no token budget and every request returns <code>429</code>.</p>
+
+  <div class="note">
+    <p class="label">Token limits are per user</p>
+    <p>Each member of the group gets the full limit. A group of 50 people on a 20,000 tokens/minute tier can use up to 50 × 20,000 tokens per minute in total.</p>
+  </div>
+</section>
+
+<section id="setup">
+  <h2><span class="n">01</span>One-time setup</h2>
+  <p>A cluster administrator does this once per cluster. It takes about five minutes.</p>
+
+  <h3>1a. Let the console create and remove MaaS subscriptions</h3>
+  <p>When you click <span class="ui">Create</span> on a template form, OpenShift's template controller creates the objects for you. When you delete the instance, a second controller removes them. Both can handle MaaSModelRefs and PrometheusRules, but not MaaSSubscriptions or MaaSAuthPolicies. This role adds those two and nothing else, and it is bound only to the two controllers. Users gain no new rights, and the controller still checks that the person instantiating is allowed to create each object.</p>
+  <ol class="steps">
+    <li>In the console masthead, click the <span class="kbd">+</span> icon (<span class="ui">Import YAML</span>).</li>
+    <li>Paste the contents of <code>maas-template-instance-governance-rbac.yaml</code> and click <span class="ui">Create</span>.</li>
+  </ol>
+<pre><code>apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: maas-template-instance-governance
+rules:
+- apiGroups: ["maas.opendatahub.io"]
+  resources: ["maassubscriptions", "maasauthpolicies"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete", "deletecollection"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: maas-template-instance-governance
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: maas-template-instance-governance
+subjects:
+- kind: ServiceAccount
+  name: template-instance-controller
+  namespace: openshift-infra
+- kind: ServiceAccount
+  name: template-instance-finalizer-controller
+  namespace: openshift-infra</code></pre>
+  <div class="warn">
+    <p class="label">Skip this and tiers can be neither created nor removed</p>
+    <p>Creating a tier fails with <code>InstantiateFailure</code>: <code>maassubscriptions.maas.opendatahub.io is forbidden: User "system:serviceaccount:openshift-infra:template-instance-controller" cannot create …</code>. The price rule is still created, so delete the failed instance before retrying.</p>
+    <p>Deleting a tier hangs. The instance stays in the list, its subscription and auth policy stay in place, and its API keys keep working.</p>
+  </div>
+
+  <h3>1b. Add the two templates</h3>
+  <p>Add them to the <code>models-as-a-service</code> project. This keeps them next to the subscriptions they create and visible only to people with access to that project.</p>
+  <ol class="steps">
+    <li>Select project <code>models-as-a-service</code> in the project selector.</li>
+    <li>Click <span class="kbd">+</span> (<span class="ui">Import YAML</span>), paste <code>maas-publish-model-template.yaml</code>, and click <span class="ui">Create</span>.</li>
+    <li>Repeat with <code>maas-model-subscription-pricing-template.yaml</code>.</li>
+  </ol>
+  <p>Both now appear in the software catalog of that project as <span class="ui">MaaS 1 - Publish a model</span> and <span class="ui">MaaS 2 - Model subscription and pricing</span>.</p>
+
+  <h3>1c. Create the user groups</h3>
+  <p>Each tier is granted to one OpenShift group. Create the groups under <span class="ui">User Management → Groups</span> and add the users. With an external identity provider (Keycloak, Entra ID), the group name in the template must match the group claim in the user's token exactly.</p>
+</section>
+
+<section id="publish">
+  <h2><span class="n">02</span>Publish a model</h2>
+  <p>Do this once per model, after the model is deployed and running.</p>
+  <div class="note">
+    <p class="label">Already published from the OpenShift AI dashboard?</p>
+    <p>If the model was deployed with the MaaS endpoint option turned on, it is already published. Go to <a href="#tier">section 3</a>. Instantiating this template would fail with <code>already exists</code>. To check, open <span class="ui">Home → Search</span>, choose resource <span class="ui">MaaSModelRef</span>, and look for the model's name in its project.</p>
+  </div>
+
+  <h3>Open the form</h3>
+  <p>Either:</p>
+  <ul>
+    <li>Select project <code>models-as-a-service</code>, open the software catalog, filter by type <span class="ui">Template</span>, choose <span class="ui">MaaS 1 - Publish a model</span>, and click <span class="ui">Instantiate Template</span>. Or:</li>
+    <li>Open this address directly (replace the console host):
+<pre><code>https://&lt;console-host&gt;/catalog/instantiate-template?template=maas-publish-model&amp;template-ns=models-as-a-service&amp;preselected-ns=models-as-a-service</code></pre></li>
+  </ul>
+  <p>Leave <span class="ui">Namespace</span> at the top of the form as <code>models-as-a-service</code>. That is only where the record of this instance is kept; the MaaSModelRef goes into the model's own project.</p>
+
+  <h3>Fill in</h3>
+  <div class="tbl"><table>
+    <tr><th>Field</th><th>What to enter</th><th>Example</th></tr>
+    <tr><td>Model name</td><td>The deployment's resource name. In the OpenShift AI dashboard it is the resource name in the deployment details, not the display name.</td><td><code>qwen3-8b-fp8-dynamic</code></td></tr>
+    <tr><td>Model namespace</td><td>Project the model is deployed in</td><td><code>demo-llm</code></td></tr>
+    <tr><td>Model kind</td><td><code>LLMInferenceService</code> for a model served on this cluster; <code>ExternalModel</code> for a hosted provider</td><td><code>LLMInferenceService</code></td></tr>
+    <tr><td>Model display name</td><td>Name users see in the model list and GenAI Studio</td><td>Qwen3 8B FP8</td></tr>
+    <tr><td>Model description</td><td>One line users see in the model list</td><td>General-purpose chat model</td></tr>
+    <tr><td>AI tenant</td><td>Leave as <code>models-as-a-service</code> unless you run additional tenants</td><td><code>models-as-a-service</code></td></tr>
+  </table></div>
+  <p>Click <span class="ui">Create</span>. The model is published but nobody can call it yet. That comes from section 3.</p>
+</section>
+
+<section id="tier">
+  <h2><span class="n">03</span>Add a subscription tier</h2>
+  <p>Do this once per tier per model. For a Premium and a Basic tier on the same model, instantiate the template twice with different subscription names.</p>
+
+  <h3>Open the form</h3>
+  <p>As in section 2, choose <span class="ui">MaaS 2 - Model subscription and pricing</span>, or open:</p>
+<pre><code>https://&lt;console-host&gt;/catalog/instantiate-template?template=maas-model-subscription-pricing&amp;template-ns=models-as-a-service&amp;preselected-ns=models-as-a-service</code></pre>
+
+  <h3>Fill in</h3>
+  <div class="tbl"><table>
+    <tr><th>Field</th><th>What to enter</th><th>Example</th></tr>
+    <tr><td colspan="3"><b>Model</b></td></tr>
+    <tr><td>Model name</td><td>Same name as in section 2</td><td><code>qwen3-8b-fp8-dynamic</code></td></tr>
+    <tr><td>Model namespace</td><td>Same project as in section 2</td><td><code>demo-llm</code></td></tr>
+    <tr><td>Model name in usage metrics</td><td>The <code>model</code> value the model returns in its responses; the price is matched to usage by it. For a model on this cluster it is normally the same as Model name. For an ExternalModel it is the provider's model ID.</td><td><code>qwen3-8b-fp8-dynamic</code></td></tr>
+    <tr><td>Tenant namespace</td><td>Leave as <code>models-as-a-service</code> for the default tenant</td><td><code>models-as-a-service</code></td></tr>
+    <tr><td colspan="3"><b>Subscription</b></td></tr>
+    <tr><td>Subscription name</td><td>Lowercase, digits and dashes, unique. Use <code>&lt;tier&gt;-&lt;model&gt;</code>. It also labels this tier's cost on the dashboard.</td><td><code>premium-qwen3-8b</code></td></tr>
+    <tr><td>Subscription display name</td><td>Shown when users create an API key</td><td>Premium - Qwen3 8B</td></tr>
+    <tr><td>Subscription description</td><td>Free text. It does not follow the limits, so keep it in sync by hand.</td><td>20k tokens/min, 4M/day</td></tr>
+    <tr><td>User group</td><td>OpenShift group from step 1c</td><td><code>premium-users</code></td></tr>
+    <tr><td>Token limit per minute</td><td rowspan="3">Whole numbers. Prompt and completion tokens count together. Each limit applies <b>per user</b>; a request is refused once any of the three is reached.</td><td><code>20000</code></td></tr>
+    <tr><td>Token limit per hour</td><td><code>400000</code></td></tr>
+    <tr><td>Token limit per day</td><td><code>4000000</code></td></tr>
+    <tr><td>Subscription priority</td><td>Which tier a new API key uses when a user is in several groups and does not choose. Higher wins. Give every tier a different value. Suggested: 100 production, 50 staging, 0 development, -10 sandbox.</td><td><code>50</code></td></tr>
+    <tr><td colspan="3"><b>Cost attribution</b></td></tr>
+    <tr><td>Organization ID</td><td>Groups cost by organization on the cost dashboard</td><td><code>acme</code></td></tr>
+    <tr><td>Cost center</td><td>Groups cost by cost center</td><td><code>cc-acme</code></td></tr>
+    <tr><td colspan="3"><b>Pricing</b></td></tr>
+    <tr><td>Price per 1 million tokens</td><td>Plain number in the currency below. Prompt and completion tokens are priced together.</td><td><code>200</code></td></tr>
+    <tr><td>Currency</td><td><code>USc</code> (US cents), <code>USD</code>, <code>EUR</code>, <code>TRY</code>. Use the same currency on every tier, because the dashboard adds them up without converting.</td><td><code>USc</code></td></tr>
+    <tr><td>Monitoring namespace</td><td>Leave as <code>redhat-ods-monitoring</code></td><td><code>redhat-ods-monitoring</code></td></tr>
+  </table></div>
+  <p>Click <span class="ui">Create</span>.</p>
+  <div class="note">
+    <p class="label">Why cents?</p>
+    <p>At pilot volumes, prices in dollars round to zero on the dashboard: 1,000 tokens at $2.00 per million is $0.002. The same price as 200 cents per million shows as 0.2.</p>
+  </div>
+</section>
+
+<section id="verify">
+  <h2><span class="n">04</span>Verify</h2>
+  <ol class="steps">
+    <li><b>The instances succeeded.</b> <span class="ui">Home → Search</span>, project <code>models-as-a-service</code>, resource <span class="ui">TemplateInstance</span>. Open each one: the condition should be <code>Ready</code> with reason <code>Created</code>, and the <span class="ui">Objects</span> list shows what was created.</li>
+    <li><b>The model is live.</b> Search resource <span class="ui">MaaSModelRef</span> in the model's project. <span class="ui">Phase</span> is <code>Ready</code> once the model pods are running. While pods are still starting it shows <code>Pending</code> or <code>Unhealthy</code>; wait.</li>
+    <li><b>The tier is active.</b> Search <span class="ui">MaaSSubscription</span> and <span class="ui">MaaSAuthPolicy</span> in <code>models-as-a-service</code>. Both show <code>Active</code>.</li>
+    <li><b>A user can call the model.</b> A member of the group creates an API key for the new subscription and sends a request. The model list (<code>/v1/models</code>) shows the display name and description you entered.</li>
+    <li><b>Cost shows up.</b> One to two minutes after the first requests, the tier appears on the MaaS cost dashboard under its subscription name.</li>
+  </ol>
+  <div class="ok">
+    <p class="label">Validated on OpenShift 4.21 with OpenShift AI 3.5</p>
+    <p>Tested with one model published by template 1 and two tiers added by template 2 (Premium 20,000 and Basic 100 tokens/minute). Requests on both tiers returned <code>200</code>. The Basic tier returned <code>429</code> after about 118 tokens in one minute, and the dashboard query priced each tier separately (118 tokens × 50 = 0.0059 USc; 172 tokens × 200 = 0.0344 USc). Deleting a tier's instance removed all three objects, and that tier's API keys then returned <code>403</code>.</p>
+  </div>
+</section>
+
+<section id="change">
+  <h2><span class="n">05</span>Change or remove</h2>
+
+  <h3>Change limits or price</h3>
+  <p>The form cannot be re-run against an existing tier. Edit the object directly:</p>
+  <ul>
+    <li><b>Limits, group or priority:</b> <span class="ui">Home → Search</span> → <span class="ui">MaaSSubscription</span> → the tier → <span class="ui">YAML</span> tab. Change <code>spec.modelRefs[0].tokenRateLimits</code> and save. If you change the group, change it in the matching <code>&lt;name&gt;-access</code> MaaSAuthPolicy too.</li>
+    <li><b>Price:</b> PrometheusRule <code>maas-price-&lt;subscription name&gt;</code> in <code>redhat-ods-monitoring</code>. Change the number in both <code>expr</code> lines (the price per 1M tokens) and save.</li>
+  </ul>
+  <p>The TemplateInstance keeps showing the original form values. To keep everything consistent, remove the tier and instantiate it again with the new values.</p>
+
+  <h3>Remove a tier</h3>
+  <p><span class="ui">Home → Search</span> → <span class="ui">TemplateInstance</span> in <code>models-as-a-service</code> → the tier's instance → <span class="ui">Actions → Delete</span>. This deletes its subscription, auth policy and price rule. The model stays published, and users' API keys for that tier stop working.</p>
+
+  <h3>Unpublish a model</h3>
+  <div class="danger">
+    <p class="label">Affects every tier</p>
+    <p>Deleting the <span class="ui">MaaS 1</span> instance deletes the MaaSModelRef. The model disappears from MaaS for all tiers. Remove the model's tiers first.</p>
+  </div>
+  <p>Instances are named by the console. Open an instance and check its <span class="ui">Objects</span> list to see which model or tier it belongs to.</p>
+</section>
+
+<section id="trouble">
+  <h2><span class="n">06</span>Troubleshooting</h2>
+  <p>A failed instance shows condition <code>InstantiateFailure</code> with the reason in its message. Objects created before the failure are kept, so delete the failed instance before retrying.</p>
+  <div class="tbl"><table>
+    <tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr>
+    <tr><td><code>maassubscriptions… is forbidden: User "system:serviceaccount:openshift-infra:template-instance-controller"</code></td><td>One-time setup 1a not done</td><td>Apply the RBAC from 1a, delete the failed instance, retry</td></tr>
+    <tr><td><code>maasmodelrefs… "&lt;model&gt;" already exists</code> (MaaS 1)</td><td>The model is already published, usually from the dashboard</td><td>Nothing to do; go to section 3</td></tr>
+    <tr><td><code>maassubscriptions… already exists</code> (MaaS 2)</td><td>The subscription name is taken</td><td>Use a different subscription name</td></tr>
+    <tr><td>Deleted instance stays in the list; its subscription still works</td><td>Setup 1a missing the <code>template-instance-finalizer-controller</code> subject</td><td>Apply the full RBAC from 1a. The deletion completes on the controller's next retry, which can take several minutes. To finish at once, delete the tier's MaaSSubscription and MaaSAuthPolicy by name.</td></tr>
+    <tr><td>Subscription shows condition <code>SpecPriorityDuplicate</code></td><td>Two subscriptions have the same priority, so a new API key could bind to either</td><td>Give each tier a different priority</td></tr>
+    <tr><td>Subscription <code>Degraded</code>, or <code>NotFound</code> under its model statuses</td><td>Model name or namespace does not match a MaaSModelRef</td><td>Remove the tier and recreate it with the exact MaaSModelRef name</td></tr>
+    <tr><td>User gets <code>403</code></td><td>User is not in the group, or the group claim does not match the name exactly</td><td>Check <span class="ui">User Management → Groups</span>, or the identity provider's group claim</td></tr>
+    <tr><td>User gets <code>429</code> immediately</td><td>The API key is bound to a different subscription, or a limit is very low</td><td>Create the API key for the intended subscription; check the limits</td></tr>
+    <tr><td>Usage on the cost dashboard but cost is zero or missing</td><td>Model name in usage metrics does not match what the model returns, or the price rule has not been loaded yet</td><td>Wait two minutes. If it is still missing, remove the tier and recreate it with the model name as it appears in the dashboard's usage panels.</td></tr>
+  </table></div>
+</section>
+
+<footer>
+  Files in this repository: <code>templates/maas-publish-model-template.yaml</code>, <code>templates/maas-model-subscription-pricing-template.yaml</code>, <code>rbac/maas-template-instance-governance-rbac.yaml</code>.
+</footer>
+
+</div>
+</body>
+</html>

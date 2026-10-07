@@ -1,0 +1,257 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: maas-model-subscription-pricing
+  annotations:
+    openshift.io/display-name: "MaaS 2 - Model subscription and pricing"
+    openshift.io/provider-display-name: Red Hat
+    iconClass: icon-openshift
+    tags: maas,models-as-a-service,subscription,pricing,showback
+    description: >-
+      Gives one group a token quota and gateway access to one published MaaS
+      model, and records the price of that usage for the cost dashboard. Run
+      once per pricing tier for each model, after the model is published.
+    openshift.io/long-description: |-
+      Creates three objects from one form:
+
+      1. MaaSSubscription "<Subscription name>" in the tenant namespace.
+         How many tokens each member of the group may use per minute, hour
+         and day.
+      2. MaaSAuthPolicy "<Subscription name>-access" in the tenant namespace.
+         Lets the group call the model through the gateway.
+      3. PrometheusRule "maas-price-<Subscription name>" in the monitoring
+         namespace. Records the price per million tokens for the cost
+         dashboard.
+
+      The subscription and the auth policy are both required. Without the
+      policy, the group is refused (403). Without the subscription, the group
+      gets through but has a zero-token budget (429).
+
+      BEFORE YOU START
+      - The model must be published to MaaS: either with "MaaS 1 - Publish a
+        model", or as a MaaS endpoint from the OpenShift AI dashboard.
+      - Each instance creates one subscription for one model. For another tier
+        (or another model), instantiate again with a different Subscription
+        name. Reusing a name fails with "already exists".
+      - The cluster needs the ClusterRole and ClusterRoleBinding named
+        maas-template-instance-governance (one-time setup). Without them the
+        subscription and the policy fail with "forbidden", and deleting the
+        TemplateInstance hangs.
+
+      REMOVING
+      Deleting the TemplateInstance deletes all three objects. The model stays
+      published.
+message: |-
+  Created for model ${MODEL_NAMESPACE}/${MODEL_NAME}:
+    MaaSSubscription  ${TENANT_NAMESPACE}/${SUBSCRIPTION_NAME}
+    MaaSAuthPolicy    ${TENANT_NAMESPACE}/${SUBSCRIPTION_NAME}-access
+    PrometheusRule    ${MONITORING_NAMESPACE}/maas-price-${SUBSCRIPTION_NAME}
+
+  Members of ${GROUP} can now create an API key for subscription
+  ${SUBSCRIPTION_NAME}. Price: ${PRICE_PER_MILLION_TOKENS} ${CURRENCY} per 1M tokens.
+labels:
+  template: maas-model-subscription-pricing
+  app.kubernetes.io/part-of: maas-showback
+objects:
+
+# 1. Token quota for the group on this model.
+- apiVersion: maas.opendatahub.io/v1alpha1
+  kind: MaaSSubscription
+  metadata:
+    name: ${SUBSCRIPTION_NAME}
+    namespace: ${TENANT_NAMESPACE}
+    annotations:
+      openshift.io/display-name: ${SUBSCRIPTION_DISPLAY_NAME}
+      openshift.io/description: ${SUBSCRIPTION_DESCRIPTION}
+  spec:
+    owner:
+      groups:
+      - name: ${GROUP}
+    modelRefs:
+    - name: ${MODEL_NAME}
+      namespace: ${MODEL_NAMESPACE}
+      tokenRateLimits:
+      - limit: ${{TOKENS_PER_MINUTE}}
+        window: 1m
+      - limit: ${{TOKENS_PER_HOUR}}
+        window: 1h
+      - limit: ${{TOKENS_PER_DAY}}
+        window: 24h
+    priority: ${{PRIORITY}}
+    tokenMetadata:
+      organizationId: ${ORGANIZATION_ID}
+      costCenter: ${COST_CENTER}
+
+# 2. Gateway access for the same group to the same model.
+- apiVersion: maas.opendatahub.io/v1alpha1
+  kind: MaaSAuthPolicy
+  metadata:
+    name: ${SUBSCRIPTION_NAME}-access
+    namespace: ${TENANT_NAMESPACE}
+    annotations:
+      openshift.io/display-name: ${SUBSCRIPTION_DISPLAY_NAME} access
+  spec:
+    modelRefs:
+    - name: ${MODEL_NAME}
+      namespace: ${MODEL_NAMESPACE}
+    subjects:
+      groups:
+      - name: ${GROUP}
+    meteringMetadata:
+      organizationId: ${ORGANIZATION_ID}
+      costCenter: ${COST_CENTER}
+
+# 3. Price of this model under this subscription, as Prometheus series.
+- apiVersion: monitoring.rhobs/v1
+  kind: PrometheusRule
+  metadata:
+    name: maas-price-${SUBSCRIPTION_NAME}
+    namespace: ${MONITORING_NAMESPACE}
+    labels:
+      app.kubernetes.io/component: pricing
+      maas.showback/subscription: ${SUBSCRIPTION_NAME}
+      platform.opendatahub.io/part-of: monitoring
+  spec:
+    groups:
+    - name: maas.pricing.${SUBSCRIPTION_NAME}
+      interval: 1m
+      rules:
+      # Price per single token: what the cost dashboard multiplies token counts by.
+      - record: maas:price_per_token
+        expr: vector(${PRICE_PER_MILLION_TOKENS} / 1000000)
+        labels:
+          subscription: ${SUBSCRIPTION_NAME}
+          model: ${METRICS_MODEL_NAME}
+          currency: ${CURRENCY}
+      # The same price per million tokens, for price tables.
+      - record: maas:price_per_mtok
+        expr: vector(${PRICE_PER_MILLION_TOKENS})
+        labels:
+          subscription: ${SUBSCRIPTION_NAME}
+          model: ${METRICS_MODEL_NAME}
+          currency: ${CURRENCY}
+
+parameters:
+
+# ---- Model ------------------------------------------------------------------
+- name: MODEL_NAME
+  displayName: Model name
+  description: >-
+    Name of the published model (its MaaSModelRef name; normally the same as
+    the deployment's resource name).
+  value: qwen3-8b-fp8-dynamic
+  required: true
+- name: MODEL_NAMESPACE
+  displayName: Model namespace
+  description: Project where the model and its MaaSModelRef live.
+  value: demo-llm
+  required: true
+- name: METRICS_MODEL_NAME
+  displayName: Model name in usage metrics
+  description: >-
+    The "model" field the model returns in its responses. The price is matched
+    to usage by this value. For a model served on this cluster it is normally the
+    same as Model name. For an ExternalModel it is the provider's model ID.
+  value: qwen3-8b-fp8-dynamic
+  required: true
+
+# ---- Tenant -----------------------------------------------------------------
+- name: TENANT_NAMESPACE
+  displayName: Tenant namespace
+  description: >-
+    Where the subscription and the auth policy are created.
+    models-as-a-service for the default tenant.
+  value: models-as-a-service
+  required: true
+
+# ---- Subscription -----------------------------------------------------------
+- name: SUBSCRIPTION_NAME
+  displayName: Subscription name
+  description: >-
+    Lowercase letters, digits and dashes. Also names the auth policy
+    (<name>-access) and the price rule (maas-price-<name>), and labels the usage
+    on the cost dashboard. Suggested form: <tier>-<model>, e.g. premium-qwen3-8b.
+  value: premium-qwen3-8b
+  required: true
+- name: SUBSCRIPTION_DISPLAY_NAME
+  displayName: Subscription display name
+  description: Name users see when they pick a subscription for an API key.
+  value: Premium - Qwen3 8B
+  required: true
+- name: SUBSCRIPTION_DESCRIPTION
+  displayName: Subscription description
+  description: >-
+    Free text shown to users. It is not linked to the limits below, so keep it
+    in sync by hand.
+  value: 20k tokens/min, 400k tokens/hour, 4M tokens/day
+  required: true
+- name: GROUP
+  displayName: User group
+  description: >-
+    OpenShift group whose members get access and the token quota (see User
+    Management > Groups). With an external identity provider, it must match
+    the group claim exactly.
+  value: premium-users
+  required: true
+- name: TOKENS_PER_MINUTE
+  displayName: Token limit per minute
+  description: >-
+    Whole number, 1 to 1,000,000,000. Counts prompt and completion tokens
+    together. Every limit applies to each user separately, not to the group
+    as a whole.
+  value: "20000"
+  required: true
+- name: TOKENS_PER_HOUR
+  displayName: Token limit per hour
+  description: Whole number, 1 to 1,000,000,000.
+  value: "400000"
+  required: true
+- name: TOKENS_PER_DAY
+  displayName: Token limit per day
+  description: Whole number, 1 to 1,000,000,000. Applied as a 24-hour window.
+  value: "4000000"
+  required: true
+- name: PRIORITY
+  displayName: Subscription priority
+  description: >-
+    Whole number. If a user belongs to several subscriptions and creates an API
+    key without choosing one, the highest priority is used. Give every tier a
+    different value. Suggested: 100
+    production, 50 staging, 0 development, -10 sandbox.
+  value: "50"
+  required: true
+
+# ---- Cost attribution -------------------------------------------------------
+- name: ORGANIZATION_ID
+  displayName: Organization ID
+  description: Groups cost by organization on the cost dashboard.
+  value: acme
+  required: true
+- name: COST_CENTER
+  displayName: Cost center
+  description: Groups cost by cost center on the cost dashboard.
+  value: cc-acme
+  required: true
+
+# ---- Pricing ----------------------------------------------------------------
+- name: PRICE_PER_MILLION_TOKENS
+  displayName: Price per 1 million tokens
+  description: >-
+    Plain number in the currency below, e.g. 200 for 200 cents. Covers prompt
+    and completion tokens together.
+  value: "200"
+  required: true
+- name: CURRENCY
+  displayName: Currency
+  description: >-
+    Unit of the price: USc (US cents), USD, EUR, TRY. Use the same currency for
+    every subscription. Cents read better at low volumes.
+  value: USc
+  required: true
+- name: MONITORING_NAMESPACE
+  displayName: Monitoring namespace
+  description: >-
+    Where the price rule is created. Leave as redhat-ods-monitoring for the
+    OpenShift AI cost dashboard.
+  value: redhat-ods-monitoring
+  required: true
